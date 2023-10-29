@@ -8,6 +8,7 @@
 import logging
 import pymongo
 import scrapy
+import typing as t
 
 from scrapy.exceptions import DropItem
 from scrapy.pipelines.images import ImagesPipeline
@@ -18,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class UnsplashCrawlerUnwrapSelectorsPipeline:
-    def process_item(self, item: scrapy.Item, spider: scrapy.Spider):
+    def process_item(self, item: scrapy.Item, spider: scrapy.Spider) -> scrapy.Item:
         _LOGGER.info("Prepare item params")
 
         # prepare url
@@ -35,7 +36,7 @@ class UnsplashCrawlerUnwrapSelectorsPipeline:
 class UnsplashCrawlerDownloadImagePipeline(ImagesPipeline):
     def get_media_requests(
         self, item: scrapy.Item, info: scrapy.pipelines.media.MediaPipeline.SpiderInfo
-    ):
+    ) -> t.Generator[scrapy.Request, t.Any, t.Any]:
         image_url = item.get("url")
         _LOGGER.info("Downloading image for url: %s", image_url)
 
@@ -49,7 +50,7 @@ class UnsplashCrawlerDownloadImagePipeline(ImagesPipeline):
         results: list[tuple[bool, dict]],
         item: scrapy.Item,
         info: scrapy.pipelines.media.MediaPipeline.SpiderInfo,
-    ):
+    ) -> scrapy.Item:
         status, download_info = results[0]
         image_url = item.get("url")
 
@@ -72,7 +73,7 @@ class UnsplashCrawlerStoreDatabasePipeline:
         db = connection[settings["MONGO_DB"]]
         self.collection = db[settings["MONGO_COLLECTION"]]
 
-    def process_item(self, item: scrapy.Item, spider: scrapy.Spider):
+    def process_item(self, item: scrapy.Item, spider: scrapy.Spider) -> None:
         image_url = item["url"]
 
         if self.collection.count_documents({"url": image_url}) > 0:
