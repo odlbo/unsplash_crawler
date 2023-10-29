@@ -22,6 +22,9 @@ class UnsplashCrawlerUnwrapSelectorsPipeline:
     def process_item(self, item: scrapy.Item, spider: scrapy.Spider) -> scrapy.Item:
         _LOGGER.info("Prepare item params")
 
+        # prepare title
+        item["title"] = item["title"].get()
+
         # prepare url
         item["url"] = item["url"].get().split()[-2]
 
@@ -83,6 +86,7 @@ class UnsplashCrawlerStoreDatabasePipeline:
         _LOGGER.info("Storing image info has been with url: %s", image_url)
         self.collection.insert_one(
             {
+                "title": item.get("title"),
                 "url": item.get("url"),
                 "tags": item.get("tags"),
                 "download_path": item.get("download_path"),
