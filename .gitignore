@@ -1,0 +1,8 @@
+.env
+.pytest_cache/
+.venv/
+.vscode/
+.isort.cfg
+dist/
+downloads/
+__pycache__/
