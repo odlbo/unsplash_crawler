@@ -26,14 +26,16 @@ class UnsplashCrawlerUnwrapSelectorsPipeline:
 
         # prepare tags
         item["tags"] = [t.get() for t in item["tags"]]
- 
+
         # return prepared item
         _LOGGER.info("Item params have been prepared")
         return item
 
 
 class UnsplashCrawlerDownloadImagePipeline(ImagesPipeline):
-    def get_media_requests(self, item: scrapy.Item, info: scrapy.pipelines.media.MediaPipeline.SpiderInfo):
+    def get_media_requests(
+        self, item: scrapy.Item, info: scrapy.pipelines.media.MediaPipeline.SpiderInfo
+    ):
         image_url = item.get("url")
         _LOGGER.info("Downloading image for url: %s", image_url)
 
@@ -43,12 +45,11 @@ class UnsplashCrawlerDownloadImagePipeline(ImagesPipeline):
             raise DropItem(f"Failed to dawnload image with url: `{image_url}`") from err
 
     def item_completed(
-            self, 
-            results: list[tuple[bool, dict]],
-            item: scrapy.Item,
-            info: scrapy.pipelines.media.MediaPipeline.SpiderInfo
+        self,
+        results: list[tuple[bool, dict]],
+        item: scrapy.Item,
+        info: scrapy.pipelines.media.MediaPipeline.SpiderInfo,
     ):
-        
         status, download_info = results[0]
         image_url = item.get("url")
 
@@ -73,15 +74,17 @@ class UnsplashCrawlerStoreDatabasePipeline:
 
     def process_item(self, item: scrapy.Item, spider: scrapy.Spider):
         image_url = item["url"]
-     
+
         if self.collection.count_documents({"url": image_url}) > 0:
             _LOGGER.info("Seems image with url `%s` is already stored", image_url)
             return
 
         _LOGGER.info("Storing image info has been with url: %s", image_url)
-        self.collection.insert_one({
-            "url": item.get("url"),
-            "tags": item.get("tags"),
-            "download_path": item.get("download_path"),
-        })
+        self.collection.insert_one(
+            {
+                "url": item.get("url"),
+                "tags": item.get("tags"),
+                "download_path": item.get("download_path"),
+            }
+        )
         _LOGGER.info("Image info has been stored with url: %s", image_url)
